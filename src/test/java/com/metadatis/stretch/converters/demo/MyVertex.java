@@ -1,11 +1,9 @@
 package com.metadatis.stretch.converters.demo;
 
 import java.io.IOException;
-import java.util.Collections;
 
 import org.apache.giraph.graph.Edge;
 import org.apache.giraph.graph.HashMapVertex;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 
 public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
@@ -28,20 +26,26 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 						
 			for (Text m : messages) {
 				String msg = m.toString();
-				if (msg.startsWith("NOTIFY_CASCADE ")) {
-					String[] split = msg.split(" ");
+				String[] split = msg.split(" ");
+				String msgType = split[0];
+				if (msgType.equals("NOTIFY_CASCADE")) {
 					String cascadeTo = split[1];
 					cascade(cascadeTo);
-				} else if (msg.startsWith("FIND_NEXT ")) {
-					handleFindNext(msg);
-				} else if (msg.startsWith("REDUCE ")) {
-					String[] split = msg.split(" ");
+				} else if (msgType.equals("FIND_NEXT")) {
 					String tag = split[1];
-					String value = split[2];
+					String src = split[2];
+					String candidateEdgeValue = split[3];
+					String reverseCandidateEdgeValue = split[4];
+					constructCandidateChain(new Text(tag), new Text(src), 
+							new Text(candidateEdgeValue),
+							new Text(reverseCandidateEdgeValue));
+				} else if (msgType.equals("REDUCE")) {
+					String tag = split[1];
+					String valueForComparison = split[2];
 					String src = split[3];
 					String reverseTag = split[4];
-					chainReduce(getId(), myvalue, new Text(tag), value, 
-							new Text(src), reverseTag);
+					chainReduce(getId(), myvalue, new Text(tag), valueForComparison, 
+							new Text(src), new Text(reverseTag));
 				}
 			}
 			
@@ -87,39 +91,36 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 			voteToHalt();
 		}
 
-		private void handleFindNext(String msg) throws IOException {
-			String[] split = msg.split(" ");
-			String tag = split[1];
-			String src = split[2];
-			String candidateEdgeValue = split[3];
-			String reverseCandidateEdgeValue = split[4];
-			Text targetId = findEdge(new Text(tag));
+		private void constructCandidateChain(Text tag, Text src,
+				Text candidateEdgeValue, Text reverseCandidateEdgeValue)
+				throws IOException {
+			Text targetId = findEdge(tag);
 			if (targetId != null) {
-				String candidate = deriveEquivalentNode(src, targetId);
-				addEdgeRequest(new Text(src), new Edge(new Text(candidate), new Text(candidateEdgeValue)));
-				addEdgeRequest(new Text(candidate), new Edge(new Text(src), new Text(reverseCandidateEdgeValue)));
+				Text candidate = deriveEquivalentNode(src, targetId);
+				addEdgeRequest(src, new Edge(candidate, candidateEdgeValue));
+				addEdgeRequest(new Text(candidate), new Edge(new Text(src), reverseCandidateEdgeValue));
 				nudge(new Text(src));
 			}
 		}
 
-		private String deriveEquivalentNode(String vertexId, Text result) {
-			String[] idSplit = vertexId.split("/");
+		private Text deriveEquivalentNode(Text vertexId, Text result) {
+			String[] idSplit = vertexId.toString().split("/");
 			String identifierFragment = idSplit[1];
 			String candidate = String.format("%s/%s", result.toString(), identifierFragment );
-			return candidate;
+			return new Text(candidate);
 		}
 
 		private void chainReduce(Text vertexId, String myvalue, Text tag,
-				String value, Text srcVertex, String reverseTag) throws IOException {
+				String valueForComparison, Text srcVertex, Text reverseTag) throws IOException {
 			final Text result;
-			if (!value.equals(myvalue)) {
+			if (!valueForComparison.equals(myvalue)) {
 				result = vertexId;
 			} else {
 				result = findEdge(tag);
 			}
 			if (result != null) {
 				addEdgeRequest(srcVertex, new Edge(result, tag));
-				sendMessage(srcVertex, new Text("NOTIFY_CASCADE " + reverseTag));
+				sendMessage(srcVertex, new Text("NOTIFY_CASCADE " + reverseTag.toString()));
 			}
 		}
 		
