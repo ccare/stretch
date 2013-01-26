@@ -65,8 +65,16 @@ public class MyTest {
 		   *   |    |    |    |    |    |    |    p3
 		   *   a    a    b    b    c    c    d
 		   *   
-		   *   X1 ---> X3 ---> X5 ---> X7   p4       
-		   *   
+		   *  A/X ----> C/X ----> E/X ----> G/X   p4  
+		   *      B/X > C/X                       p4
+		   *                D/X > E/X             p4
+		   *                          F/X > G/X   p4       
+		   *                          
+		   *  A/X <---- C/X <---- E/X <---- G/X   r4  
+		   *  A/X < B/X                           r4
+		   *            C/X < D/X                 r4
+		   *                      E/X < F/X       r4 
+		   *       
 		   */
 		  
 	    // Input
@@ -99,6 +107,9 @@ public class MyTest {
 	    		"C/X3 p4 E/X5", 
 	    		"E/X5 p4 G/X7" };
 	    
+	    String nextItemPred = "p4";
+	    String prevItemPred = "r4";
+	    
 	    String[] expectedResults =
 	        new String[] { 
 	    		"A/X p4 C/X", 
@@ -106,8 +117,16 @@ public class MyTest {
 	    		"C/X p4 E/X", 
 	    		"D/X p4 E/X", 
 	    		"E/X p4 G/X", 
-	    		"F/X p4 G/X" };
-	    	    
+	    		"F/X p4 G/X",
+	    		// & reverse
+//	    		"G/X r4 E/X", 
+//	    		"F/X r4 E/X", 
+//	    		"E/X r4 C/X", 
+//	    		"D/X r4 C/X", 
+//	    		"C/X r4 A/X", 
+//	    		"B/X r4 A/X" 
+	    		};
+	    
 	    Map<String, String> myParams = Maps.newHashMap();
 
 	    Collection<String> results = process(graph, myParams);
