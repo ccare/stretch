@@ -32,8 +32,6 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 					String[] split = msg.split(" ");
 					String cascadeTo = split[1];
 					cascade(cascadeTo);
-				} else if (msg.startsWith("FOUND ")) {
-					handleFoundNext(vertexId, msg);
 				} else if (msg.startsWith("FIND_NEXT ")) {
 					handleFindNext(msg);
 				} else if (msg.startsWith("REDUCE ")) {
@@ -99,16 +97,6 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 					sendMessage(new Text(src), message);
 				}
 			}
-		}
-
-		private void handleFoundNext(String vertexId, String msg)
-				throws IOException {
-//			String[] split = msg.split(" ");
-//			String tag = split[1];
-//			String result = split[2];
-//			String candidate = deriveEquivalentNode(vertexId, result);
-			//addEdge(new Text(candidate), new Text(candidateEdgeValue));
-			//addEdgeRequest(new Text(candidate), new Edge(getId(), new Text(reverseCandidateEdgeValue)));
 		}
 
 		private String deriveEquivalentNode(String vertexId, String result) {
