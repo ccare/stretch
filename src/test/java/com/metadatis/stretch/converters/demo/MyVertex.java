@@ -35,7 +35,7 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 				} else if (msg.startsWith("FIND_NEXT ")) {
 					handleFindNext(msg);
 				} else if (msg.startsWith("REDUCE ")) {
-					handleReduceMessage(vertexId, myvalue, msg);
+					handleReduceMessage(getId(), myvalue, msg);
 				}
 			}
 			
@@ -87,46 +87,46 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 			String src = split[2];
 			String candidateEdgeValue = split[3];
 			String reverseCandidateEdgeValue = split[4];
-			String targetId = findEdge(tag);
+			Text targetId = findEdge(tag);
 			if (targetId != null) {
 				String candidate = deriveEquivalentNode(src, targetId);
 				addEdgeRequest(new Text(src), new Edge(new Text(candidate), new Text(candidateEdgeValue)));
 				addEdgeRequest(new Text(candidate), new Edge(new Text(src), new Text(reverseCandidateEdgeValue)));
-				sendMessage(new Text(src), new Text("_"));
+				nudge(new Text(src));
 			}
 		}
 
-		private String deriveEquivalentNode(String vertexId, String result) {
+		private String deriveEquivalentNode(String vertexId, Text result) {
 			String[] idSplit = vertexId.split("/");
 			String identifierFragment = idSplit[1];
-			String candidate = String.format("%s/%s", result, identifierFragment );
+			String candidate = String.format("%s/%s", result.toString(), identifierFragment );
 			return candidate;
 		}
 
-		private void handleReduceMessage(String vertexId, String myvalue,
+		private void handleReduceMessage(Text vertexId, String myvalue,
 				String msg) throws IOException {
 			String[] split = msg.split(" ");
 			String tag = split[1];
 			String value = split[2];
 			String src = split[3];
 			String reverseTag = split[4];
-			String result;
+			Text result;
 			if (!value.equals(myvalue)) {
 				result = vertexId;
 			} else {
 				result = findEdge(tag);
 			}
 			if (result != null) {
-				addEdgeRequest(new Text(src), new Edge(new Text(result), new Text(tag)));
+				addEdgeRequest(new Text(src), new Edge(result, new Text(tag)));
 				sendMessage(new Text(src), new Text("NOTIFY_CASCADE " + reverseTag));
 			}
 		}
 		
-		private String findEdge(String tag) {
-			String next = null;
+		private Text findEdge(String tag) {
+			Text next = null;
 			for (Edge<Text, Text> e : getEdges()) {
 				if (e.getValue().toString().equals(tag)) {
-					next = e.getTargetVertexId().toString();
+					next = e.getTargetVertexId();
 				}
 			}
 			return next;
