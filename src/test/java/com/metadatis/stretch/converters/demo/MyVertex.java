@@ -85,11 +85,6 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 					sendMessage(new Text(candidate), message);
 				}
 			}
-//			if (reduceCandidate && reverseCandidate != null) {
-//				Text message = new Text("REDUCE " 
-//						+ myvalue + " " + vertexId);
-//				sendMessage(new Text(reverseCandidate), message);
-//			}
 			voteToHalt();
 		
 		}
@@ -116,22 +111,30 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 			String src = split[3];
 			String reverseTag = split[4];
 			if (!value.equals(myvalue)) {
-				Text message = new Text("RFOUND " + reverseTag);
-				addEdgeRequest(new Text(src), new Edge(new Text(vertexId), new Text(tag)));
-				sendMessage(new Text(src), message);
+				rFound(vertexId, tag, src, reverseTag);
 			} else {
-				String next = null;
-				for (Edge<Text, Text> e : getEdges()) {
-					if (e.getValue().toString().equals(tag)) {
-						next = e.getTargetVertexId().toString();
-					}
-				}
+				String next = findEdge(tag);
 				if (next != null) {
-					Text message = new Text("RFOUND " + reverseTag);
-					addEdgeRequest(new Text(src), new Edge(new Text(next), new Text(tag)));
-					sendMessage(new Text(src), message);
+					rFound(next, tag, src, reverseTag);
 				}
 			}
+		}
+		
+		private String findEdge(String tag) {
+			String next = null;
+			for (Edge<Text, Text> e : getEdges()) {
+				if (e.getValue().toString().equals(tag)) {
+					next = e.getTargetVertexId().toString();
+				}
+			}
+			return next;
+		}
+
+		private void rFound(String vertexId, String tag, String src,
+				String reverseTag) throws IOException {
+			Text message = new Text("RFOUND " + reverseTag);
+			addEdgeRequest(new Text(src), new Edge(new Text(vertexId), new Text(tag)));
+			sendMessage(new Text(src), message);
 		}
 		
 		private void handleReduceFound(String msg) {
