@@ -18,9 +18,6 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 
 		@Override
 		public void compute(Iterable<Text> messages) throws IOException {
-			// Is this a reduce candidate
-			boolean reduceCandidate = isReduceCandidate();
-			String vertexId = getId().toString();
 			
 			String myvalue = calculateMyValue();
 						
@@ -30,7 +27,7 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 				String msgType = split[0];
 				if (msgType.equals("NOTIFY_CASCADE")) {
 					String cascadeTo = split[1];
-					cascade(cascadeTo);
+					cascadeNudge(cascadeTo);
 				} else if (msgType.equals("FIND_NEXT")) {
 					String tag = split[1];
 					String src = split[2];
@@ -48,6 +45,11 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 							new Text(src), new Text(reverseTag));
 				}
 			}
+			
+
+			// Is this a reduce candidate
+			boolean reduceCandidate = isReduceCandidate();
+			String vertexId = getId().toString();
 			
 			String candidate  = null;
 			String derived  = null;
@@ -134,7 +136,7 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 			return next;
 		}
 		
-		private void cascade(String cascadeTo) {
+		private void cascadeNudge(String cascadeTo) {
 			for (Edge<Text, Text> e : getEdges()) {
 				if (e.getValue().toString().equals(cascadeTo)) { 
 					Text target = e.getTargetVertexId();
