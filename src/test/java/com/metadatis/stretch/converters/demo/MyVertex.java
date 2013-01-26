@@ -29,14 +29,7 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 			for (Text m : messages) {
 				String msg = m.toString();
 				if (msg.startsWith("RFOUND ")) {
-					String[] split = msg.split(" ");
-					String dest = split[1];
-					addEdge(new Text(dest), new Text(derivedEdgeValue));
-					for (Edge<Text, Text> e : getEdges()) {
-						if (e.getValue().toString().equals(reverseCandidateEdgeValue)) {
-							sendMessage(e.getTargetVertexId(), new Text("_"));
-						}
-					}
+					handleReduceFound(msg);
 				}
 				if (msg.startsWith("FOUND ")) {
 					String[] split = msg.split(" ");
@@ -48,35 +41,9 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 					addEdge(new Text(candidate), new Text(candidateEdgeValue));
 					addEdgeRequest(new Text(candidate), new Edge(getId(), new Text(reverseCandidateEdgeValue)));
 				} else if (msg.startsWith("FIND_NEXT ")) {
-					String[] split = msg.split(" ");
-					String tag = split[1];
-					String src = split[2];
-					for (Edge<Text, Text> e : getEdges()) {
-						if (e.getValue().toString().equals(tag)) {
-							Text message = new Text("FOUND " + tag + " " + e.getTargetVertexId());
-							sendMessage(new Text(src), message);
-						}
-					}
+					handleFindNext(msg);
 				} else if (msg.startsWith("REDUCE ")) {
-					String[] split = msg.split(" ");
-					String tag = split[1];
-					String value = split[2];
-					String src = split[3];
-					if (!value.equals(myvalue)) {
-						Text message = new Text("RFOUND " + vertexId);
-						sendMessage(new Text(src), message);
-					} else {
-						String next = null;
-						for (Edge<Text, Text> e : getEdges()) {
-							if (e.getValue().toString().equals(tag)) {
-								next = e.getTargetVertexId().toString();
-							}
-						}
-						if (next != null) {
-							Text message = new Text("RFOUND " + next);
-							sendMessage(new Text(src), message);
-						}
-					}
+					handleReduceMessage(vertexId, myvalue, msg);
 				}
 			}
 			
@@ -122,6 +89,54 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 //			}
 			voteToHalt();
 		
+		}
+
+
+
+		private void handleFindNext(String msg) {
+			String[] split = msg.split(" ");
+			String tag = split[1];
+			String src = split[2];
+			for (Edge<Text, Text> e : getEdges()) {
+				if (e.getValue().toString().equals(tag)) {
+					Text message = new Text("FOUND " + tag + " " + e.getTargetVertexId());
+					sendMessage(new Text(src), message);
+				}
+			}
+		}
+
+		private void handleReduceMessage(String vertexId, String myvalue,
+				String msg) {
+			String[] split = msg.split(" ");
+			String tag = split[1];
+			String value = split[2];
+			String src = split[3];
+			if (!value.equals(myvalue)) {
+				Text message = new Text("RFOUND " + vertexId);
+				sendMessage(new Text(src), message);
+			} else {
+				String next = null;
+				for (Edge<Text, Text> e : getEdges()) {
+					if (e.getValue().toString().equals(tag)) {
+						next = e.getTargetVertexId().toString();
+					}
+				}
+				if (next != null) {
+					Text message = new Text("RFOUND " + next);
+					sendMessage(new Text(src), message);
+				}
+			}
+		}
+		
+		private void handleReduceFound(String msg) {
+			String[] split = msg.split(" ");
+			String dest = split[1];
+			addEdge(new Text(dest), new Text(derivedEdgeValue));
+			for (Edge<Text, Text> e : getEdges()) {
+				if (e.getValue().toString().equals(reverseCandidateEdgeValue)) {
+					sendMessage(e.getTargetVertexId(), new Text("_"));
+				}
+			}
 		}
 
 		private boolean isReduceCandidate() {
