@@ -79,7 +79,9 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 					Text message = new Text("REDUCE " 
 							+ derivedEdgeValue
 							+ " "
-							+ myvalue + " " + vertexId);
+							+ myvalue + " " + vertexId
+							+ " "
+							+ reverseCandidateEdgeValue);
 					sendMessage(new Text(candidate), message);
 				}
 			}
@@ -112,9 +114,10 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 			String tag = split[1];
 			String value = split[2];
 			String src = split[3];
+			String reverseTag = split[4];
 			if (!value.equals(myvalue)) {
-				Text message = new Text("RFOUND " + reverseCandidateEdgeValue);
-				addEdgeRequest(new Text(src), new Edge(new Text(vertexId), new Text(derivedEdgeValue)));
+				Text message = new Text("RFOUND " + reverseTag);
+				addEdgeRequest(new Text(src), new Edge(new Text(vertexId), new Text(tag)));
 				sendMessage(new Text(src), message);
 			} else {
 				String next = null;
@@ -124,8 +127,8 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 					}
 				}
 				if (next != null) {
-					Text message = new Text("RFOUND " + reverseCandidateEdgeValue);
-					addEdgeRequest(new Text(src), new Edge(new Text(next), new Text(derivedEdgeValue)));
+					Text message = new Text("RFOUND " + reverseTag);
+					addEdgeRequest(new Text(src), new Edge(new Text(next), new Text(tag)));
 					sendMessage(new Text(src), message);
 				}
 			}
