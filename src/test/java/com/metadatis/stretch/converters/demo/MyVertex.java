@@ -35,7 +35,13 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 				} else if (msg.startsWith("FIND_NEXT ")) {
 					handleFindNext(msg);
 				} else if (msg.startsWith("REDUCE ")) {
-					handleReduceMessage(getId(), myvalue, msg);
+					String[] split = msg.split(" ");
+					String tag = split[1];
+					String value = split[2];
+					String src = split[3];
+					String reverseTag = split[4];
+					chainReduce(getId(), myvalue, new Text(tag), value, 
+							new Text(src), reverseTag);
 				}
 			}
 			
@@ -87,7 +93,7 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 			String src = split[2];
 			String candidateEdgeValue = split[3];
 			String reverseCandidateEdgeValue = split[4];
-			Text targetId = findEdge(tag);
+			Text targetId = findEdge(new Text(tag));
 			if (targetId != null) {
 				String candidate = deriveEquivalentNode(src, targetId);
 				addEdgeRequest(new Text(src), new Edge(new Text(candidate), new Text(candidateEdgeValue)));
@@ -103,29 +109,24 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 			return candidate;
 		}
 
-		private void handleReduceMessage(Text vertexId, String myvalue,
-				String msg) throws IOException {
-			String[] split = msg.split(" ");
-			String tag = split[1];
-			String value = split[2];
-			String src = split[3];
-			String reverseTag = split[4];
-			Text result;
+		private void chainReduce(Text vertexId, String myvalue, Text tag,
+				String value, Text srcVertex, String reverseTag) throws IOException {
+			final Text result;
 			if (!value.equals(myvalue)) {
 				result = vertexId;
 			} else {
 				result = findEdge(tag);
 			}
 			if (result != null) {
-				addEdgeRequest(new Text(src), new Edge(result, new Text(tag)));
-				sendMessage(new Text(src), new Text("NOTIFY_CASCADE " + reverseTag));
+				addEdgeRequest(srcVertex, new Edge(result, tag));
+				sendMessage(srcVertex, new Text("NOTIFY_CASCADE " + reverseTag));
 			}
 		}
 		
-		private Text findEdge(String tag) {
+		private Text findEdge(Text tag) {
 			Text next = null;
 			for (Edge<Text, Text> e : getEdges()) {
-				if (e.getValue().toString().equals(tag)) {
+				if (e.getValue().equals(tag)) {
 					next = e.getTargetVertexId();
 				}
 			}
