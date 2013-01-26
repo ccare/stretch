@@ -66,6 +66,7 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 				}
 			}
 
+			voteToHalt();
 			if (reduceCandidate && derived != null) {
 				voteToHalt();
 			} else if (reduceCandidate && candidate == null) {
@@ -106,13 +107,14 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 		}
 
 		private void handleReduceMessage(String vertexId, String myvalue,
-				String msg) {
+				String msg) throws IOException {
 			String[] split = msg.split(" ");
 			String tag = split[1];
 			String value = split[2];
 			String src = split[3];
 			if (!value.equals(myvalue)) {
-				Text message = new Text("RFOUND " + vertexId);
+				Text message = new Text("RFOUND " + reverseCandidateEdgeValue);
+				addEdgeRequest(new Text(src), new Edge(new Text(vertexId), new Text(derivedEdgeValue)));
 				sendMessage(new Text(src), message);
 			} else {
 				String next = null;
@@ -122,7 +124,8 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 					}
 				}
 				if (next != null) {
-					Text message = new Text("RFOUND " + next);
+					Text message = new Text("RFOUND " + reverseCandidateEdgeValue);
+					addEdgeRequest(new Text(src), new Edge(new Text(next), new Text(derivedEdgeValue)));
 					sendMessage(new Text(src), message);
 				}
 			}
@@ -130,10 +133,9 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 		
 		private void handleReduceFound(String msg) {
 			String[] split = msg.split(" ");
-			String dest = split[1];
-			addEdge(new Text(dest), new Text(derivedEdgeValue));
+			String cascadeTo = split[1];
 			for (Edge<Text, Text> e : getEdges()) {
-				if (e.getValue().toString().equals(reverseCandidateEdgeValue)) {
+				if (e.getValue().toString().equals(cascadeTo)) { 
 					sendMessage(e.getTargetVertexId(), new Text("_"));
 				}
 			}
