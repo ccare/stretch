@@ -65,7 +65,8 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 			} else if (reduceCandidate && candidate == null) {
 				String[] split = vertexId.split("/");
 				String derivedParent = split[0];
-				Text message = new Text("FIND_NEXT p1 " + vertexId);
+				Text message = new Text("FIND_NEXT p1 " + vertexId 
+						+ " " + candidateEdgeValue + " " + reverseCandidateEdgeValue);
 				sendMessage(new Text(derivedParent), message);
 			} else {
 				if (reduceCandidate && candidate != null) {
@@ -86,6 +87,8 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 			String[] split = msg.split(" ");
 			String tag = split[1];
 			String src = split[2];
+			String candidateEdgeValue = split[3];
+			String reverseCandidateEdgeValue = split[4];
 			for (Edge<Text, Text> e : getEdges()) {
 				if (e.getValue().toString().equals(tag)) {
 					Text message = new Text("FOUND " + tag + " " + e.getTargetVertexId());
