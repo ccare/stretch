@@ -28,10 +28,11 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 						
 			for (Text m : messages) {
 				String msg = m.toString();
-				if (msg.startsWith("RFOUND ")) {
-					handleReduceFound(msg);
-				}
-				if (msg.startsWith("FOUND ")) {
+				if (msg.startsWith("NOTIFY_CASCADE ")) {
+					String[] split = msg.split(" ");
+					String cascadeTo = split[1];
+					cascade(cascadeTo);
+				} else if (msg.startsWith("FOUND ")) {
 					handleFoundNext(vertexId, msg);
 				} else if (msg.startsWith("FIND_NEXT ")) {
 					handleFindNext(msg);
@@ -146,19 +147,21 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 
 		private void rFound(String vertexId, String tag, String src,
 				String reverseTag) throws IOException {
-			Text message = new Text("RFOUND " + reverseTag);
 			addEdgeRequest(new Text(src), new Edge(new Text(vertexId), new Text(tag)));
-			sendMessage(new Text(src), message);
+			sendMessage(new Text(src), new Text("NOTIFY_CASCADE " + reverseTag));
 		}
 		
-		private void handleReduceFound(String msg) {
-			String[] split = msg.split(" ");
-			String cascadeTo = split[1];
+		private void cascade(String cascadeTo) {
 			for (Edge<Text, Text> e : getEdges()) {
 				if (e.getValue().toString().equals(cascadeTo)) { 
-					sendMessage(e.getTargetVertexId(), new Text("_"));
+					Text target = e.getTargetVertexId();
+					nudge(target);
 				}
 			}
+		}
+
+		private void nudge(Text target) {
+			sendMessage(target, new Text("_"));
 		}
 
 		private boolean isReduceCandidate() {
