@@ -32,14 +32,7 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 					handleReduceFound(msg);
 				}
 				if (msg.startsWith("FOUND ")) {
-					String[] split = msg.split(" ");
-					String tag = split[1];
-					String result = split[2];
-					String[] idSplit = vertexId.split("/");
-					String identifierFragment = idSplit[1];
-					String candidate = String.format("%s/%s", result, identifierFragment );
-					addEdge(new Text(candidate), new Text(candidateEdgeValue));
-					addEdgeRequest(new Text(candidate), new Edge(getId(), new Text(reverseCandidateEdgeValue)));
+					handleFoundNext(vertexId, msg);
 				} else if (msg.startsWith("FIND_NEXT ")) {
 					handleFindNext(msg);
 				} else if (msg.startsWith("REDUCE ")) {
@@ -90,6 +83,18 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 		}
 
 
+
+		private void handleFoundNext(String vertexId, String msg)
+				throws IOException {
+			String[] split = msg.split(" ");
+			String tag = split[1];
+			String result = split[2];
+			String[] idSplit = vertexId.split("/");
+			String identifierFragment = idSplit[1];
+			String candidate = String.format("%s/%s", result, identifierFragment );
+			addEdge(new Text(candidate), new Text(candidateEdgeValue));
+			addEdgeRequest(new Text(candidate), new Edge(getId(), new Text(reverseCandidateEdgeValue)));
+		}
 
 		private void handleFindNext(String msg) {
 			String[] split = msg.split(" ");
