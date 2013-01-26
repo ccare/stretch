@@ -79,7 +79,6 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 				}
 			}
 			voteToHalt();
-		
 		}
 
 		private void handleFindNext(String msg) throws IOException {
@@ -88,14 +87,12 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 			String src = split[2];
 			String candidateEdgeValue = split[3];
 			String reverseCandidateEdgeValue = split[4];
-			for (Edge<Text, Text> e : getEdges()) {
-				if (e.getValue().toString().equals(tag)) {
-					Text message = new Text("FOUND " + tag + " " + e.getTargetVertexId());
-					String candidate = deriveEquivalentNode(src, e.getTargetVertexId().toString());
-					addEdgeRequest(new Text(src), new Edge(new Text(candidate), new Text(candidateEdgeValue)));
-					addEdgeRequest(new Text(candidate), new Edge(new Text(src), new Text(reverseCandidateEdgeValue)));
-					sendMessage(new Text(src), message);
-				}
+			String targetId = findEdge(tag);
+			if (targetId != null) {
+				String candidate = deriveEquivalentNode(src, targetId);
+				addEdgeRequest(new Text(src), new Edge(new Text(candidate), new Text(candidateEdgeValue)));
+				addEdgeRequest(new Text(candidate), new Edge(new Text(src), new Text(reverseCandidateEdgeValue)));
+				sendMessage(new Text(src), new Text("_"));
 			}
 		}
 
