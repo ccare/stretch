@@ -82,30 +82,36 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 		
 		}
 
-
-
-		private void handleFoundNext(String vertexId, String msg)
-				throws IOException {
-			String[] split = msg.split(" ");
-			String tag = split[1];
-			String result = split[2];
-			String[] idSplit = vertexId.split("/");
-			String identifierFragment = idSplit[1];
-			String candidate = String.format("%s/%s", result, identifierFragment );
-			addEdge(new Text(candidate), new Text(candidateEdgeValue));
-			addEdgeRequest(new Text(candidate), new Edge(getId(), new Text(reverseCandidateEdgeValue)));
-		}
-
-		private void handleFindNext(String msg) {
+		private void handleFindNext(String msg) throws IOException {
 			String[] split = msg.split(" ");
 			String tag = split[1];
 			String src = split[2];
 			for (Edge<Text, Text> e : getEdges()) {
 				if (e.getValue().toString().equals(tag)) {
 					Text message = new Text("FOUND " + tag + " " + e.getTargetVertexId());
+					String candidate = deriveEquivalentNode(src, e.getTargetVertexId().toString());
+					addEdgeRequest(new Text(src), new Edge(new Text(candidate), new Text(candidateEdgeValue)));
+					addEdgeRequest(new Text(candidate), new Edge(new Text(src), new Text(reverseCandidateEdgeValue)));
 					sendMessage(new Text(src), message);
 				}
 			}
+		}
+
+		private void handleFoundNext(String vertexId, String msg)
+				throws IOException {
+//			String[] split = msg.split(" ");
+//			String tag = split[1];
+//			String result = split[2];
+//			String candidate = deriveEquivalentNode(vertexId, result);
+			//addEdge(new Text(candidate), new Text(candidateEdgeValue));
+			//addEdgeRequest(new Text(candidate), new Edge(getId(), new Text(reverseCandidateEdgeValue)));
+		}
+
+		private String deriveEquivalentNode(String vertexId, String result) {
+			String[] idSplit = vertexId.split("/");
+			String identifierFragment = idSplit[1];
+			String candidate = String.format("%s/%s", result, identifierFragment );
+			return candidate;
 		}
 
 		private void handleReduceMessage(String vertexId, String myvalue,
