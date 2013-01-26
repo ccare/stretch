@@ -113,13 +113,15 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 			String value = split[2];
 			String src = split[3];
 			String reverseTag = split[4];
+			String result;
 			if (!value.equals(myvalue)) {
-				rFound(vertexId, tag, src, reverseTag);
+				result = vertexId;
 			} else {
-				String next = findEdge(tag);
-				if (next != null) {
-					rFound(next, tag, src, reverseTag);
-				}
+				result = findEdge(tag);
+			}
+			if (result != null) {
+				addEdgeRequest(new Text(src), new Edge(new Text(result), new Text(tag)));
+				sendMessage(new Text(src), new Text("NOTIFY_CASCADE " + reverseTag));
 			}
 		}
 		
@@ -131,12 +133,6 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 				}
 			}
 			return next;
-		}
-
-		private void rFound(String vertexId, String tag, String src,
-				String reverseTag) throws IOException {
-			addEdgeRequest(new Text(src), new Edge(new Text(vertexId), new Text(tag)));
-			sendMessage(new Text(src), new Text("NOTIFY_CASCADE " + reverseTag));
 		}
 		
 		private void cascade(String cascadeTo) {
