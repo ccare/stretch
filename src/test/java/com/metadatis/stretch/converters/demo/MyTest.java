@@ -71,10 +71,38 @@ public class MyTest {
 		   *                          F/X > G/X   p4       
 		   *                          
 		   *  A/X <---- C/X <---- E/X <---- G/X   r4  
-		   *  A/X < B/X                           r4
-		   *            C/X < D/X                 r4
-		   *                      E/X < F/X       r4 
-		   *       
+		   *  A/X <---------- D/X                 r4
+		   *            C/X <--------  F/X        r4 
+		   *        
+		   *  A/X < B/X                           rTmp 
+		   *            C/X < D/X                 rTmp
+		   *                      E/X < F/X       rTmp
+		   *                      
+		   * [B/X sameVersionBackward A/X, A/X sameVersionForward B/X]
+		   *                      
+		   *  F:  "I'm G looking for last d over r4 with temp rTmp"
+		   *     d!=c, so can answer
+		   *       if (F.rTmp != null) 
+		   *         set F.rTmp<G    
+		   *  E:  "I'm F looking for last c over r4 with temp rTmp"
+		   *     d==c, so can answer
+		   *       if (F.rTmp == null && F.r4 != null) 
+		   *         set E.r4<F 
+		   *  
+
+ 
+
+		   *  
+	     *    G->F  (A)I've got d, I'm G
+		   *  if (F.val == d) {
+		   *  	if (F.first() != null)
+		   *       set G.first()->F.first()
+		   *    else
+		   *       F->E (A)I've got d, I'm F
+		   *  }
+		   *  else {
+		   *  	 
+		   *  }
 		   */
 		  
 	    // Input
@@ -120,12 +148,12 @@ public class MyTest {
 	    		"F/X p4 G/X",
 	    		// & reverse
 //	    		"G/X r4 E/X", 
-//	    		"F/X r4 E/X", 
+//	    		"F/X r4 C/X", 
 //	    		"E/X r4 C/X", 
-//	    		"D/X r4 C/X", 
-//	    		"C/X r4 A/X", 
-//	    		"B/X r4 A/X" 
-	    		};
+//	    		"D/X r4 A/X", 
+//	    		"C/X r4 A/X" 
+	    		};    
+	    
 	    
 	    Map<String, String> myParams = Maps.newHashMap();
 

@@ -15,41 +15,81 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 		private final String reverseDerivedEdgeValue = "r4";
 		private final String candidateEdgeValue = "p5";
 		private final String reverseCandidateEdgeValue = "r5";
+		private final String previousCandidateEdgeValue = "r6";
 
 		@Override
 		public void compute(Iterable<Text> messages) throws IOException {
 			
-			String myvalue = calculateMyValue();
+			final String myvalue = calculateMyValue();
 						
 			for (Text m : messages) {
-				String msg = m.toString();
-				String[] split = msg.split(" ");
-				String msgType = split[0];
+				final String msg = m.toString();
+				final String[] split = msg.split(" ");
+				final String msgType = split[0];
 				if (msgType.equals("NOTIFY_CASCADE")) {
-					String cascadeTo = split[1];
+					final String cascadeTo = split[1];
 					cascadeNudge(cascadeTo);
 				} else if (msgType.equals("FIND_NEXT")) {
-					String tag = split[1];
-					String src = split[2];
-					String candidateEdgeValue = split[3];
-					String reverseCandidateEdgeValue = split[4];
+					final String tag = split[1];
+					final String src = split[2];
+					final String candidateEdgeValue = split[3];
+					final String reverseCandidateEdgeValue = split[4];
 					constructCandidateChain(new Text(tag), new Text(src), 
 							new Text(candidateEdgeValue),
 							new Text(reverseCandidateEdgeValue));
+				} else if (msgType.equals("BUILD_SAME_LINKS")) {
+					final String tag = split[1];
+					final String valueForComparison = split[2];
+					final String src = split[3];
+					final String reverseTag = split[4];
+					buildDiffLinks(getId(), myvalue, new Text(tag), valueForComparison, 
+							new Text(src), new Text(reverseTag));
 				} else if (msgType.equals("REDUCE")) {
-					String tag = split[1];
-					String valueForComparison = split[2];
-					String src = split[3];
-					String reverseTag = split[4];
+					final String tag = split[1];
+					final String valueForComparison = split[2];
+					final String src = split[3];
+					final String reverseTag = split[4];
 					chainReduce(getId(), myvalue, new Text(tag), valueForComparison, 
 							new Text(src), new Text(reverseTag));
+				} else if (msgType.equals("REDUCE_BACKWARD")) {
+					final Text tag = new Text(split[1]); // backward link
+					final String valueForComparison = split[2]; // val
+					final Text src = new Text(split[3]); 
+					final Text previousCandidateEdgeValue = new Text(split[4]); // forward link
+					Text prev = findEdge(previousCandidateEdgeValue);
+					
+					Text backSame = findEdge(new Text("sameVersionBackward"));
+					Text backDiff = findEdge(new Text("diffVersionBackward"));
+					Text forwardSame = findEdge(new Text("sameVersionForward"));
+					Text forwardDiff = findEdge(new Text("diffVersionForward"));
+					nudge(forwardSame);
+					nudge(forwardDiff);
+					if (forwardDiff != null) {
+						prev = forwardDiff;
+					} else if (forwardSame != null) {
+						prev = forwardSame;
+					}
+					
+					Text result = null;
+					if (valueForComparison.equals(myvalue)) {
+						Text localAnwer = findEdge(tag);
+						if (prev == null && localAnwer != null) {
+							result = getId();
+						}
+					} else {
+						if (prev != null) {
+							result = prev;
+						}
+					}
+					if (result != null) {
+						addEdgeRequest(src, new Edge(result, tag));
+					}
 				}
 			}
-			
 
 			// Is this a reduce candidate
-			boolean reduceCandidate = isReduceCandidate();
-			String vertexId = getId().toString();
+			final boolean reduceCandidate = isReduceCandidate();
+			final String vertexId = getId().toString();
 			
 			String candidate  = null;
 			String derived  = null;
@@ -69,28 +109,86 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 					reverseCandidate = e.getTargetVertexId().toString();
 				}
 			}
-
-			voteToHalt();
-			if (reduceCandidate && derived != null) {
-				voteToHalt();
-			} else if (reduceCandidate && candidate == null) {
-				String[] split = vertexId.split("/");
-				String derivedParent = split[0];
-				Text message = new Text("FIND_NEXT p1 " + vertexId 
-						+ " " + candidateEdgeValue + " " + reverseCandidateEdgeValue);
+			
+			if (reduceCandidate && derived == null && candidate == null) {
+				final String[] split = vertexId.split("/");
+				final String derivedParent = split[0];
+				final Text message = new Text("FIND_NEXT p1 " + vertexId 
+						+ " " + candidateEdgeValue 
+						+ " " + reverseCandidateEdgeValue);
 				sendMessage(new Text(derivedParent), message);
 			} else {
-				if (reduceCandidate && candidate != null) {
-					Text message = new Text("REDUCE " 
+				compute(myvalue, reduceCandidate, vertexId, 
+						candidate, derived, 
+						derivedEdgeValue, reverseCandidateEdgeValue);
+//				compute(myvalue, reduceCandidate, vertexId, 
+//						reverseCandidate, reverseDerived, 
+//						reverseDerivedEdgeValue, candidateEdgeValue);
+
+				Text backSame = findEdge(new Text("sameVersionBackward"));
+				Text backDiff = findEdge(new Text("diffVersionBackward"));
+				Text forwardSame = findEdge(new Text("sameVersionForward"));
+				Text forwardDiff = findEdge(new Text("diffVersionForward"));
+				
+				if (reverseDerived != null) {
+					
+				} else if (reduceCandidate && backSame == null && backDiff == null
+						      && forwardSame == null && forwardDiff == null) {
+					Text message = new Text("BUILD_SAME_LINKS " 
 							+ derivedEdgeValue
 							+ " "
-							+ myvalue + " " + vertexId
+							+ myvalue 
+							+ " " 
+							+ vertexId
 							+ " "
 							+ reverseCandidateEdgeValue);
 					sendMessage(new Text(candidate), message);
+					if (backSame != null) {
+						sendMessage(backSame, message);
+					} else if (backDiff != null) {
+						sendMessage(backDiff, message);
+					} 
+					
 				}
+//				} else if (reduceCandidate && backDiff != null) {
+//						Text message = new Text("REDUCE_BACKWARD " 
+//								+ reverseDerivedEdgeValue
+//								+ " "
+//								+ myvalue 
+//								+ " " 
+//								+ vertexId
+//								+ " "
+//								+ reverseCandidateEdgeValue);
+//						sendMessage(new Text(backDiff), message);			
+//				} else if (reduceCandidate && backSame != null) {
+//					Text message = new Text("REDUCE_BACKWARD " 
+//							+ reverseDerivedEdgeValue
+//							+ " "
+//							+ myvalue 
+//							+ " " 
+//							+ vertexId
+//							+ " "
+//							+ reverseCandidateEdgeValue);
+//					sendMessage(new Text(backSame), message);			
+//				}
 			}
-			voteToHalt();
+			voteToHalt();		
+		}
+
+		private void compute(String myvalue, boolean reduceCandidate,
+				String vertexId, String candidate, String derived,
+				String derivedEdgeValue, String reverseCandidateEdgeValue) {
+				if (reduceCandidate && derived == null && candidate != null) {
+					Text message = new Text("REDUCE " 
+							+ derivedEdgeValue
+							+ " "
+							+ myvalue 
+							+ " " 
+							+ vertexId
+							+ " "
+							+ reverseCandidateEdgeValue);
+					sendMessage(new Text(candidate), message);
+			}
 		}
 
 		private void constructCandidateChain(Text tag, Text src,
@@ -100,11 +198,12 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 			if (targetId != null) {
 				Text candidate = deriveEquivalentNode(src, targetId);
 				addEdgeRequest(src, new Edge(candidate, candidateEdgeValue));
-				addEdgeRequest(new Text(candidate), new Edge(new Text(src), reverseCandidateEdgeValue));
+				addEdgeRequest(candidate, new Edge(src, reverseCandidateEdgeValue));
 				nudge(new Text(src));
+				nudge(new Text(candidate));
 			}
 		}
-
+		
 		private Text deriveEquivalentNode(Text vertexId, Text result) {
 			String[] idSplit = vertexId.toString().split("/");
 			String identifierFragment = idSplit[1];
@@ -112,6 +211,18 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 			return new Text(candidate);
 		}
 
+		private void buildDiffLinks(Text vertexId, String myvalue, Text tag,
+				String valueForComparison, Text srcVertex, Text reverseTag) throws IOException {
+			if (valueForComparison.equals(myvalue)) {
+				addEdgeRequest(srcVertex, new Edge(getId(), new Text("sameVersionForward")));
+				addEdge(srcVertex, new Text("sameVersionBackward"));
+			} else {
+				addEdgeRequest(srcVertex, new Edge(getId(), new Text("diffVersionForward")));
+				addEdge(srcVertex, new Text("diffVersionBackward"));				
+			}
+			nudge(srcVertex);
+		}
+		
 		private void chainReduce(Text vertexId, String myvalue, Text tag,
 				String valueForComparison, Text srcVertex, Text reverseTag) throws IOException {
 			final Text result;
@@ -146,7 +257,9 @@ public class MyVertex extends HashMapVertex<Text, Text, Text, Text> {
 		}
 
 		private void nudge(Text target) {
-			sendMessage(target, new Text("_"));
+			if (target != null) {
+				sendMessage(target, new Text("_"));
+			}
 		}
 
 		private boolean isReduceCandidate() {
