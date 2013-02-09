@@ -25,7 +25,21 @@ public class SimpleOutputFormat extends TextVertexOutputFormat<Text, Text, NullW
 			Iterable<Edge> edges = vertex.getEdges();
 			for (Edge<Text, Text> e : edges) {
 				Text edgeVal = e.getValue();
-				if (edgeVal.toString().equals("p4")) {
+				if (  //edgeVal.toString().equals("p4")
+						//|| edgeVal.toString().equals("r4")
+//						|| 
+//						edgeVal.toString().startsWith("sameVersionForward")
+//						|| 
+//						edgeVal.toString().startsWith("sameVersionBackward")
+//						|| 
+						edgeVal.toString().startsWith("r5")
+						||
+						edgeVal.toString().startsWith("r4")
+//						|| 
+//						edgeVal.toString().startsWith("diffVersionForward")
+//						|| 
+//						edgeVal.toString().startsWith("diffVersionBackward")
+						) {
 					String output = String.format("%s %s %s", id.toString(), 
 							edgeVal.toString(), e.getTargetVertexId().toString());
 					getRecordWriter().write(output, null);
