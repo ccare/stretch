@@ -6,6 +6,6 @@ interface MessageHandler {
 
 	public String getMessageType();
 
-	public void handle(String[] params) throws IOException;
+	public void handle(ChainReduceVertex vertex, String[] params) throws IOException;
 
 }

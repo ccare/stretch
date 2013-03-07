@@ -5,20 +5,7 @@ import java.io.IOException;
 import org.apache.giraph.graph.Edge;
 import org.apache.hadoop.io.Text;
 
-class CalculateForwardCandidateAction implements VertexAction,
-			MessageHandler {
-
-		/**
-		 * 
-		 */
-		private final ChainReduceVertex vertex;
-
-		/**
-		 * @param chainReduceVertex
-		 */
-		CalculateForwardCandidateAction(ChainReduceVertex chainReduceVertex) {
-			vertex = chainReduceVertex;
-		}
+class CalculateForwardCandidateAction extends AbstractChainReduceAction implements MessageHandler {
 
 		private final Text DUMMY_VERTEX = new Text("X");
 		
@@ -28,14 +15,13 @@ class CalculateForwardCandidateAction implements VertexAction,
 		Text prev = new Text("cPrev");
 		
 		@Override
-		public boolean triggerable() {
-			Text target = vertex.findEdge(next);
-			//boolean noSuchEdge = noEdge(next);
-			return vertex.isReduceCandidate() && target == null;// && !noSuchEdge;
+		public boolean triggerable(ChainReduceVertex vertex) {
+			Text target = findEdgeByValue(vertex, next);
+			return target == null;
 		}
 
 		@Override
-		public void trigger() throws IOException {
+		public void trigger(ChainReduceVertex vertex) throws IOException {
 			String vertexId = vertex.getId().toString();
 			String[] split = vertexId.split("/");
 			String derivedParent = split[0];
@@ -49,27 +35,27 @@ class CalculateForwardCandidateAction implements VertexAction,
 		}
 
 		@Override
-		public void handle(String[] params) throws IOException {
+		public void handle(ChainReduceVertex vertex, String[] params) throws IOException {
 			final Text src = new Text(params[1]);
-			Text pTargetId = vertex.findEdge(p1);
+			Text pTargetId = findEdgeByValue(vertex, p1);
 			if (pTargetId != null) {
 				Text candidate = deriveEquivalentNode(src, pTargetId);
-				vertex.sendEdgeRequest(src, new Edge(candidate, next));
-				vertex.sendEdgeRequest(candidate, new Edge(src, prev));
-				vertex.nudge(new Text(candidate));
+				vertex.addEdgeRequest(src, (Edge<Text, Text>) new Edge(candidate, next));
+				vertex.addEdgeRequest(candidate, (Edge<Text, Text>) new Edge(src, prev));
+				nudge(vertex, new Text(candidate));
 			} else {
-				vertex.sendEdgeRequest(src, new Edge(DUMMY_VERTEX, next));				
+				vertex.addEdgeRequest(src, (Edge<Text, Text>) new Edge(DUMMY_VERTEX, next));				
 			}
-			Text rTargetId = vertex.findEdge(r1);
+			Text rTargetId = findEdgeByValue(vertex, r1);
 			if (rTargetId != null) {
 				Text candidate = deriveEquivalentNode(src, rTargetId);
-				vertex.sendEdgeRequest(src, new Edge(candidate, prev));
-				vertex.sendEdgeRequest(candidate, new Edge(src, next));
-				vertex.nudge(new Text(candidate));
+				vertex.addEdgeRequest(src, (Edge<Text, Text>) new Edge(candidate, prev));
+				vertex.addEdgeRequest(candidate, (Edge<Text, Text>) new Edge(src, next));
+				nudge(vertex, new Text(candidate));
 			} else {
-				vertex.sendEdgeRequest(src, new Edge(DUMMY_VERTEX, prev));				
+				vertex.addEdgeRequest(src, (Edge<Text, Text>) new Edge(DUMMY_VERTEX, prev));				
 			}
-			vertex.nudge(new Text(src));
+			nudge(vertex, new Text(src));
 		}
 
 		private Text deriveEquivalentNode(Text vertexId, Text result) {
@@ -81,23 +67,16 @@ class CalculateForwardCandidateAction implements VertexAction,
 		}
 
 		@Override
-		public boolean finished() {
-			if (!vertex.isReduceCandidate()) {
-				return true;
-			}
-			Text target = vertex.findEdge(next);
+		public boolean finished(ChainReduceVertex vertex) {
+			Text target = findEdgeByValue(vertex, next);
 			boolean foundTarget = target != null;
-			boolean noSuchEdge = vertex.noEdge(next);
-//			if (getId().toString().equals("G/X")) {
-//				return true;
-//			}
-			ChainReduceVertex.sb.append(String.format("%s: %s\n", vertex.getId(), foundTarget || noSuchEdge));
+			boolean noSuchEdge = noEdge(vertex, next);
 			return (foundTarget || noSuchEdge);
 		}
-
-		@Override
-		public boolean applicable() {
-			// TODO Auto-generated method stub
-			return true;
+		
+		void nudge(ChainReduceVertex vertex, Text target) {
+			if (target != null) {
+				vertex.sendMessage(target, new Text("_"));
+			}
 		}
-	}
+}

@@ -1,24 +1,20 @@
 package com.metadatis.stretch.chainreduce;
 
+import org.apache.giraph.graph.Edge;
 import org.apache.hadoop.io.Text;
 
 public abstract class GuardedEdgeAction implements VertexAction {
 
-	/**
-	 * 
-	 */
-	private final ChainReduceVertex vertex;
 	private final Text edgeLabel;
 	private Integer currentHash;
 	
-	public GuardedEdgeAction(ChainReduceVertex chainReduceVertex, final Text edgeLabel) {
-		vertex = chainReduceVertex;
+	public GuardedEdgeAction(final Text edgeLabel) {
 		this.edgeLabel = edgeLabel;
 	}
 
 	@Override
-	public boolean triggerable() {
-		final int calculated = vertex.hashEdgesWithValue(edgeLabel);
+	public boolean triggerable(ChainReduceVertex vertex) {
+		final int calculated = hashEdgesWithValue(vertex, edgeLabel);
 		if (currentHash == null) {
 			currentHash = calculated;
 			return true;
@@ -33,4 +29,13 @@ public abstract class GuardedEdgeAction implements VertexAction {
 		}
 	}	
 	
+	private int hashEdgesWithValue(ChainReduceVertex vertex, Text tag) {
+		int hashCode = 0;
+		for (Edge<Text, Text> e : vertex.getEdges()) {
+			if (e.getValue().equals(tag)) {
+				hashCode += e.getTargetVertexId().toString().hashCode();
+			}
+		}
+		return hashCode;
+	}
 }

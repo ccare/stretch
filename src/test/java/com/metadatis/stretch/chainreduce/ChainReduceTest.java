@@ -99,13 +99,7 @@ public class ChainReduceTest {
 	    		"d _ _",
 	    		"e _ _",
 	    		"f _ _",
-	    		"X _ _"};
-	
-	@Before
-	public void setup() {
-		ChainReduceVertex.sb = new StringBuffer();
-	}
-	
+	    		"X _ _"};	
 	
 	@Test
 	public void canOutputEdgesOfAGivenType() throws Exception {
@@ -133,7 +127,6 @@ public class ChainReduceTest {
 			throws Exception {
 		Collection<String> results = process(graph, params);
 
-	    System.out.println(ChainReduceVertex.sb.toString());
 	    System.out.println(results);
 	    
 		return results;
@@ -157,7 +150,6 @@ public class ChainReduceTest {
 		    Collection<String> results = process(params);
 
 		    System.out.println(results);
-		    System.out.println(ChainReduceVertex.sb.toString());
 		    
 		    List<String> expected = asList(expectedResults);
 			Assert.assertTrue(results.containsAll(expected));

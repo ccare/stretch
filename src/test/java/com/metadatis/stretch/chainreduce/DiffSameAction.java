@@ -5,22 +5,14 @@ import java.io.IOException;
 import org.apache.giraph.graph.Edge;
 import org.apache.hadoop.io.Text;
 
-class DiffSameAction implements VertexAction,
-MessageHandler {
+class DiffSameAction extends AbstractChainReduceAction implements MessageHandler {
 	
-	/**
-	 * 
-	 */
-	private final ChainReduceVertex vertex;
 	private final CalculateForwardCandidateAction candidateAction;
 	private final Text sameLabel;
 	private final Text diffLabel;
 	private final Text candidateLabel;
 	
-	boolean done = false;
-	
-	public DiffSameAction(ChainReduceVertex chainReduceVertex, Text sameLabel, Text diffLabel, final Text candidateLabel, CalculateForwardCandidateAction candidateAction) {
-		vertex = chainReduceVertex;
+	public DiffSameAction(Text sameLabel, Text diffLabel, final Text candidateLabel, CalculateForwardCandidateAction candidateAction) {
 		this.sameLabel = sameLabel;
 		this.diffLabel = diffLabel;
 		this.candidateLabel = candidateLabel;
@@ -33,59 +25,67 @@ MessageHandler {
 	}
 
 	@Override
-	public void handle(String[] params) throws IOException {
+	public void handle(ChainReduceVertex vertex, String[] params) throws IOException {
 		String src = params[1];
 		String value = params[2];
 		
-		String calculateMyValue = vertex.calculateMyValue();
+		String calculateMyValue = calculateVertexValue(vertex);
 		
 		Text sourceVertexId = new Text(src);
 		if (calculateMyValue.equals(value)) {
-			vertex.sendEdgeRequest(sourceVertexId, new Edge(vertex.getId(), sameLabel));
+			vertex.addEdgeRequest(sourceVertexId, (Edge<Text, Text>) new Edge(vertex.getId(), sameLabel));
 		} else {
-			vertex.sendEdgeRequest(sourceVertexId, new Edge(vertex.getId(),  diffLabel));				
+			vertex.addEdgeRequest(sourceVertexId, (Edge<Text, Text>) new Edge(vertex.getId(),  diffLabel));				
 		}			
 	}
 
 	@Override
-	public boolean triggerable() {
-		if (! vertex.isReduceCandidate()) {
+	public boolean triggerable(ChainReduceVertex vertex) {
+		if (!candidateAction.finished(vertex)) {
 			return false;
-		} else if (!candidateAction.finished()) {
+		} else if (null == findEdgeByValue(vertex, candidateLabel)) {
 			return false;
-		} else if (null == vertex.findEdge(candidateLabel)) {
-			return false;
-		} else if (vertex.noEdge(candidateLabel)) {
+		} else if (noEdge(vertex, candidateLabel)) {
 			return false;
 		}  else {
 			return true;
 		}
 	}
 
+
+	private String calculateVertexValue(ChainReduceVertex vertex) {
+		String myvalue = null;
+		for (Edge<Text, Text> e : vertex.getEdges()) {
+			if (e.getValue().toString().equals("p3")) {
+				myvalue = e.getTargetVertexId().toString();
+			}
+		}
+		return myvalue;
+	}
+
 	@Override
-	public boolean finished() {
-		if (!vertex.isReduceCandidate()) {
-			return true;
-		} else if (!candidateAction.finished()) {
+	public boolean finished(ChainReduceVertex vertex) {
+		if (!candidateAction.finished(vertex)) {
 			return false;
+		} else if (null == findEdgeByValue(vertex, candidateLabel)) {
+			return true;
 		} else {
-			return null != vertex.findEdge(sameLabel) || null != vertex.findEdge(diffLabel);
+			Text sameLink = findEdgeByValue(vertex, sameLabel);
+			Text diffLink = findEdgeByValue(vertex, diffLabel);
+			if (null == sameLink && null == diffLink) {
+				return false;
+			} else {
+				return true;
+			}
 		}
 	}
 
 	@Override
-	public void trigger() throws IOException {
+	public void trigger(ChainReduceVertex vertex) throws IOException {
 		String vertexId = vertex.getId().toString();
-		Text candidate = vertex.findEdge(candidateLabel);
-		Text msg = new Text(getMessageType() + " " + vertexId + " " + vertex.calculateMyValue());
+		Text candidate = findEdgeByValue(vertex, candidateLabel);
+		Text msg = new Text(getMessageType() + " " + vertexId + " " + calculateVertexValue(vertex));
 		vertex.sendMessage(candidate, msg);
-		done = true;
-	}
-
-	@Override
-	public boolean applicable() {
-		// TODO Auto-generated method stub
-		return true;
 	}
 	
 }
