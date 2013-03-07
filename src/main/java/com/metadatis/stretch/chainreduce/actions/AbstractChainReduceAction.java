@@ -1,11 +1,8 @@
 package com.metadatis.stretch.chainreduce.actions;
 
-import org.apache.giraph.graph.Edge;
-import org.apache.hadoop.io.Text;
-
 import com.metadatis.stretch.chainreduce.ChainReduceVertex;
 
-public abstract class AbstractChainReduceAction implements VertexAction {
+public abstract class AbstractChainReduceAction implements VertexAction<ChainReduceVertex> {
 
 	public AbstractChainReduceAction() {
 		super();
@@ -21,22 +18,5 @@ public abstract class AbstractChainReduceAction implements VertexAction {
 		return reduceCandidate;
 	}
 	
-	public boolean noEdge(ChainReduceVertex vertex, Text tag) {
-		for (Edge<Text, Text> e : vertex.getEdges()) {
-			if (e.getValue().equals(tag) && e.getTargetVertexId().equals(new Text("X"))) {
-				return true;
-			}
-		}
-		return false;
-	}
 
-	public Text findEdgeByValue(ChainReduceVertex vertex, Text tag) {
-		Text next = null;
-		for (Edge<Text, Text> e : vertex.getEdges()) {
-			if (e.getValue().equals(tag) && !e.getTargetVertexId().equals(new Text("X"))) {
-				next = e.getTargetVertexId();
-			}
-		}
-		return next;
-	}
 }

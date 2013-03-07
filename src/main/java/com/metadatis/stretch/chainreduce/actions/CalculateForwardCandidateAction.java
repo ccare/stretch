@@ -1,5 +1,9 @@
 package com.metadatis.stretch.chainreduce.actions;
 
+import static com.metadatis.stretch.chainreduce.ChainReduceUtils.DUMMY_VERTEX;
+import static com.metadatis.stretch.chainreduce.ChainReduceUtils.findEdgeByValue;
+import static com.metadatis.stretch.chainreduce.ChainReduceUtils.noEdge;
+
 import java.io.IOException;
 
 import org.apache.giraph.graph.Edge;
@@ -7,19 +11,24 @@ import org.apache.hadoop.io.Text;
 
 import com.metadatis.stretch.chainreduce.ChainReduceVertex;
 
-public class CalculateForwardCandidateAction extends AbstractChainReduceAction implements MessageHandler {
+public class CalculateForwardCandidateAction extends AbstractChainReduceAction implements MessageHandler<ChainReduceVertex> {
+		
+		private final Text parentForwardLabel;
+		private final Text parentReverseLabel;
+		private final Text nextCandidateLabel;
+		private final Text prevCandidateLabel;
+		
+		public CalculateForwardCandidateAction(final Text p1, final Text r1, 
+				final Text next, final Text prev) {
+			this.parentForwardLabel = p1;
+			this.parentReverseLabel = r1;
+			this.nextCandidateLabel = next;
+			this.prevCandidateLabel = prev;
+		}
 
-		private final Text DUMMY_VERTEX = new Text("X");
-		
-		Text p1 = new Text("p1");
-		Text r1 = new Text("r1");
-		Text next = new Text("cNext");
-		Text prev = new Text("cPrev");
-		
 		@Override
 		public boolean triggerable(ChainReduceVertex vertex) {
-			Text target = findEdgeByValue(vertex, next);
-			return target == null;
+			return null == findEdgeByValue(vertex, nextCandidateLabel);
 		}
 
 		@Override
@@ -39,26 +48,27 @@ public class CalculateForwardCandidateAction extends AbstractChainReduceAction i
 		@Override
 		public void handle(ChainReduceVertex vertex, String[] params) throws IOException {
 			final Text src = new Text(params[1]);
-			Text pTargetId = findEdgeByValue(vertex, p1);
+			Text pTargetId = findEdgeByValue(vertex, parentForwardLabel);
 			if (pTargetId != null) {
 				Text candidate = deriveEquivalentNode(src, pTargetId);
-				vertex.addEdgeRequest(src, (Edge<Text, Text>) new Edge(candidate, next));
-				vertex.addEdgeRequest(candidate, (Edge<Text, Text>) new Edge(src, prev));
+				vertex.addEdgeRequest(src, new Edge<Text, Text>(candidate, nextCandidateLabel));
+				vertex.addEdgeRequest(candidate, new Edge<Text, Text>(src, prevCandidateLabel));
 				nudge(vertex, new Text(candidate));
 			} else {
-				vertex.addEdgeRequest(src, (Edge<Text, Text>) new Edge(DUMMY_VERTEX, next));				
+				vertex.addEdgeRequest(src, new Edge<Text, Text>(DUMMY_VERTEX, nextCandidateLabel));				
 			}
-			Text rTargetId = findEdgeByValue(vertex, r1);
+			Text rTargetId = findEdgeByValue(vertex, parentReverseLabel);
 			if (rTargetId != null) {
 				Text candidate = deriveEquivalentNode(src, rTargetId);
-				vertex.addEdgeRequest(src, (Edge<Text, Text>) new Edge(candidate, prev));
-				vertex.addEdgeRequest(candidate, (Edge<Text, Text>) new Edge(src, next));
+				vertex.addEdgeRequest(src, new Edge<Text, Text>(candidate, prevCandidateLabel));
+				vertex.addEdgeRequest(candidate, new Edge<Text, Text>(src, nextCandidateLabel));
 				nudge(vertex, new Text(candidate));
 			} else {
-				vertex.addEdgeRequest(src, (Edge<Text, Text>) new Edge(DUMMY_VERTEX, prev));				
+				vertex.addEdgeRequest(src, new Edge<Text, Text>(DUMMY_VERTEX, prevCandidateLabel));				
 			}
 			nudge(vertex, new Text(src));
 		}
+
 
 		private Text deriveEquivalentNode(Text vertexId, Text result) {
 			String[] idSplit = vertexId.toString().split("/");
@@ -70,9 +80,9 @@ public class CalculateForwardCandidateAction extends AbstractChainReduceAction i
 
 		@Override
 		public boolean finished(ChainReduceVertex vertex) {
-			Text target = findEdgeByValue(vertex, next);
+			Text target = findEdgeByValue(vertex, nextCandidateLabel);
 			boolean foundTarget = target != null;
-			boolean noSuchEdge = noEdge(vertex, next);
+			boolean noSuchEdge = noEdge(vertex, nextCandidateLabel);
 			return (foundTarget || noSuchEdge);
 		}
 		

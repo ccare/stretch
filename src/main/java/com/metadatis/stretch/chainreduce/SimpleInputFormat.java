@@ -1,11 +1,9 @@
 package com.metadatis.stretch.chainreduce;
 
 import java.io.IOException;
-import java.util.Collections;
 
 import org.apache.giraph.graph.Vertex;
 import org.apache.giraph.io.TextVertexInputFormat;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;

@@ -1,11 +1,12 @@
 package com.metadatis.stretch.chainreduce.actions;
 
+import static com.metadatis.stretch.chainreduce.ChainReduceUtils.findEdgeByValue;
+
 import java.io.IOException;
 
 import org.apache.giraph.graph.Edge;
 import org.apache.hadoop.io.Text;
 
-import com.metadatis.stretch.KodeGraphVertex;
 import com.metadatis.stretch.chainreduce.ChainReduceVertex;
 
 public class ReverseEdgeAction extends GuardedEdgeAction {
@@ -35,15 +36,5 @@ public class ReverseEdgeAction extends GuardedEdgeAction {
 	@Override
 	public boolean applicable(ChainReduceVertex vertex) {
 		return true;
-	}
-
-	private Text findEdgeByValue(ChainReduceVertex vertex, Text tag) {
-		Text next = null;
-		for (Edge<Text, Text> e : vertex.getEdges()) {
-			if (e.getValue().equals(tag) && !e.getTargetVertexId().equals(new Text("X"))) {
-				next = e.getTargetVertexId();
-			}
-		}
-		return next;
 	}
 }

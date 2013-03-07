@@ -294,9 +294,11 @@ public class ChainReduceTest {
 		    		"F/X fDiff G/X"   };
 		    
 		    Map<String, String> params = Maps.newHashMap();
-		    params.put("exportEdges", "fDiff");
+		    params.put("exportEdges", "fDiff,fSame");
 
 		    Collection<String> results = process(params);
+		    
+		    System.out.println(results);
 		    
 		    List<String> expected = asList(expectedResults);
 			Assert.assertTrue(results.containsAll(expected));

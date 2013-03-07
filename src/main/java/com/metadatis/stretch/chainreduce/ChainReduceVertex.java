@@ -1,71 +1,37 @@
 package com.metadatis.stretch.chainreduce;
 
-import java.io.IOException;
 
 import org.apache.hadoop.io.Text;
 
 import com.metadatis.stretch.chainreduce.actions.CalculateForwardCandidateAction;
 import com.metadatis.stretch.chainreduce.actions.DiffSameAction;
-import com.metadatis.stretch.chainreduce.actions.MessageHandler;
 import com.metadatis.stretch.chainreduce.actions.ReverseEdgeAction;
-import com.metadatis.stretch.chainreduce.actions.VertexAction;
 
-public class ChainReduceVertex extends MultigraphVertex<Text, Text, Text, Text> {
+public class ChainReduceVertex extends AbstractActionBasedComputationVertex {
 
-	private static HandlerRegistry registry = new HandlerRegistry();
+	private static final Text P1 = new Text("p1");
+	private static final Text R1 = new Text("r1");
+
+	private static final Text P2 = new Text("p2");
+	private static final Text R2 = new Text("r2");
+
+	private static final Text CANDIDATE_NEXT = new Text("cNext");
+	private static final Text CANDIDATE_PREV = new Text("cPrev");
+
+	private static final Text FORWARD_SAME_LABEL = new Text("fSame");
+	private static final Text FORWARD_DIFFERENT_LABEL = new Text("fDiff");		
 	
-	static {
-		CalculateForwardCandidateAction candidateAction = new CalculateForwardCandidateAction();
+	private static final Text BACKWARD_SAME_LABEL = new Text("bSame");
+	private static final Text BACKWARD_DIFFERENT_LABEL = new Text("bDiff");	
+	
+	static {		
+		CalculateForwardCandidateAction createCandidateAction = new CalculateForwardCandidateAction(P1, R1, CANDIDATE_NEXT, CANDIDATE_PREV);
 		
-		registry.register(new ReverseEdgeAction(new Text("p1"), new Text("r1")));
-		registry.register(new ReverseEdgeAction(new Text("p2"), new Text("r2")));
-		registry.register(candidateAction);
-		registry.register(new DiffSameAction(new Text("fSame"), new Text("fDiff"), new Text("cNext"), candidateAction));
-		registry.register(new DiffSameAction(new Text("bSame"), new Text("bDiff"), new Text("cPrev"), candidateAction));
-	}
-
-	@Override
-	public void compute(Iterable<Text> messages) throws IOException {				
-		handleMessages(messages);
-		invokeActions();
-		if (isFinished()) {
-			voteToHalt();
-		}
-	}
-
-	private boolean isFinished() {
-		boolean finished = true;
-		for (VertexAction a : registry.getActions()) {
-			if (a.applicable(this) && ! a.finished(this)) {
-				finished = false;
-			}
-		}
-		return finished;
-	}
-
-	private void invokeActions() throws IOException {
-		for (VertexAction a : registry.getActions()) {
-			boolean applicable = a.applicable(this);
-			if (applicable) {
-				boolean triggerable = a.triggerable(this);
-				boolean finished = a.finished(this);
-				if (triggerable && ! finished) {
-					a.trigger(this);
-				}
-			}
-		}
-	}
-
-	private void handleMessages(Iterable<Text> messages) throws IOException {
-		for (Text m : messages) {
-			final String msg = m.toString();
-			final String[] split = msg.split(" ");
-			final String msgType = split[0];
-			MessageHandler messageHandler = registry.getHandler(msgType);
-			if (messageHandler != null) {
-				messageHandler.handle(this, split);
-			}
-		}
+		registry.register(new ReverseEdgeAction(P1, R1));
+		registry.register(new ReverseEdgeAction(P2, R2));
+		registry.register(createCandidateAction);
+		registry.register(new DiffSameAction(FORWARD_SAME_LABEL, FORWARD_DIFFERENT_LABEL, CANDIDATE_NEXT, createCandidateAction));
+		registry.register(new DiffSameAction(BACKWARD_SAME_LABEL, BACKWARD_DIFFERENT_LABEL, CANDIDATE_PREV, createCandidateAction));
 	}
 
 }

@@ -2,13 +2,9 @@ package com.metadatis.stretch.chainreduce;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.giraph.graph.Edge;
 import org.apache.giraph.graph.Vertex;
 import org.apache.giraph.io.TextVertexOutputFormat;
@@ -26,7 +22,7 @@ public class SimpleOutputFormat extends TextVertexOutputFormat<Text, Text, NullW
 		@Override
 		public void writeVertex(Vertex vertex) throws IOException,
 				InterruptedException {
-			String edgesToExport = getContext().getConfiguration().get("exportEdges", "p4");
+			String edgesToExport = getContext().getConfiguration().get("exportEdges", "*");
 			if (edgesToExport.equals("*")) {
 				WritableComparable id = vertex.getId();
 				Writable value = vertex.getValue();

@@ -1,5 +1,8 @@
 package com.metadatis.stretch.chainreduce.actions;
 
+import static com.metadatis.stretch.chainreduce.ChainReduceUtils.findEdgeByValue;
+import static com.metadatis.stretch.chainreduce.ChainReduceUtils.noEdge;
+
 import java.io.IOException;
 
 import org.apache.giraph.graph.Edge;
@@ -7,7 +10,7 @@ import org.apache.hadoop.io.Text;
 
 import com.metadatis.stretch.chainreduce.ChainReduceVertex;
 
-public class DiffSameAction extends AbstractChainReduceAction implements MessageHandler {
+public class DiffSameAction extends AbstractChainReduceAction implements MessageHandler<ChainReduceVertex> {
 	
 	private final CalculateForwardCandidateAction candidateAction;
 	private final Text sameLabel;
@@ -35,9 +38,9 @@ public class DiffSameAction extends AbstractChainReduceAction implements Message
 		
 		Text sourceVertexId = new Text(src);
 		if (calculateMyValue.equals(value)) {
-			vertex.addEdgeRequest(sourceVertexId, (Edge<Text, Text>) new Edge(vertex.getId(), sameLabel));
+			vertex.addEdgeRequest(sourceVertexId, new Edge<Text, Text>(vertex.getId(), sameLabel));
 		} else {
-			vertex.addEdgeRequest(sourceVertexId, (Edge<Text, Text>) new Edge(vertex.getId(),  diffLabel));				
+			vertex.addEdgeRequest(sourceVertexId, new Edge<Text, Text>(vertex.getId(),  diffLabel));				
 		}			
 	}
 

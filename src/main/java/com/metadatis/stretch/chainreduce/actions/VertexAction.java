@@ -2,17 +2,16 @@ package com.metadatis.stretch.chainreduce.actions;
 
 import java.io.IOException;
 
-import com.metadatis.stretch.KodeGraphVertex;
-import com.metadatis.stretch.chainreduce.ChainReduceVertex;
+import com.metadatis.stretch.chainreduce.AbstractActionBasedComputationVertex;
 
-public interface VertexAction {
+public interface VertexAction<V extends AbstractActionBasedComputationVertex> {
 
-	public boolean triggerable(ChainReduceVertex vertex);
+	public boolean triggerable(V vertex);
 
-	public boolean finished(ChainReduceVertex vertex);
+	public boolean finished(V vertex);
 
-	public void trigger(ChainReduceVertex vertex) throws IOException;
+	public void trigger(V vertex) throws IOException;
 
-	public boolean applicable(ChainReduceVertex vertex);
+	public boolean applicable(V vertex);
 
 }

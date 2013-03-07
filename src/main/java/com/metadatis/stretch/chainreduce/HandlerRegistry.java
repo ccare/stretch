@@ -10,8 +10,8 @@ import com.metadatis.stretch.chainreduce.actions.VertexAction;
 
 public class HandlerRegistry {
 
-	private Map<String, MessageHandler> handlers = new HashMap<String, MessageHandler>();
-	private Collection<VertexAction> actions = new HashSet<VertexAction>();
+	private final Map<String, MessageHandler> handlers = new HashMap<String, MessageHandler>();
+	private final Collection<VertexAction> actions = new HashSet<VertexAction>();
 
 	public void register(Object o) {
 		if (o instanceof MessageHandler) {

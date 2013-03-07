@@ -5,7 +5,7 @@ import org.apache.hadoop.io.Text;
 
 import com.metadatis.stretch.chainreduce.ChainReduceVertex;
 
-public abstract class GuardedEdgeAction implements VertexAction {
+public abstract class GuardedEdgeAction implements VertexAction<ChainReduceVertex> {
 
 	private final Text edgeLabel;
 	private Integer currentHash;
