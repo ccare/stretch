@@ -14,6 +14,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.collect.Maps;
+import com.metadatis.stretch.chainreduce.SimpleInputFormat;
+import com.metadatis.stretch.chainreduce.SimpleOutputFormat;
 
 public class MyTest {
 

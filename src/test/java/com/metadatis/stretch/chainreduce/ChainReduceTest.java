@@ -1,4 +1,4 @@
-package com.metadatis.stretch.converters.demo;
+package com.metadatis.stretch.chainreduce;
 
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertThat;

@@ -1,4 +1,4 @@
-package com.metadatis.stretch.converters.demo;
+package com.metadatis.stretch.chainreduce;
 
 import java.io.FileWriter;
 import java.io.IOException;
