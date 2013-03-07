@@ -1,4 +1,4 @@
-package com.metadatis.stretch.chainreduce;
+package com.metadatis.stretch.chainreduce.actions;
 
 import java.io.IOException;
 
@@ -6,6 +6,7 @@ import org.apache.giraph.graph.Edge;
 import org.apache.hadoop.io.Text;
 
 import com.metadatis.stretch.KodeGraphVertex;
+import com.metadatis.stretch.chainreduce.ChainReduceVertex;
 
 public class ReverseEdgeAction extends GuardedEdgeAction {
 

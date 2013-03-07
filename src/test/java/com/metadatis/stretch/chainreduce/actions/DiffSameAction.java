@@ -1,11 +1,13 @@
-package com.metadatis.stretch.chainreduce;
+package com.metadatis.stretch.chainreduce.actions;
 
 import java.io.IOException;
 
 import org.apache.giraph.graph.Edge;
 import org.apache.hadoop.io.Text;
 
-class DiffSameAction extends AbstractChainReduceAction implements MessageHandler {
+import com.metadatis.stretch.chainreduce.ChainReduceVertex;
+
+public class DiffSameAction extends AbstractChainReduceAction implements MessageHandler {
 	
 	private final CalculateForwardCandidateAction candidateAction;
 	private final Text sameLabel;

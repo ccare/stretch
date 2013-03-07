@@ -1,8 +1,10 @@
-package com.metadatis.stretch.chainreduce;
+package com.metadatis.stretch.chainreduce.actions;
 
 import java.io.IOException;
 
-interface MessageHandler {
+import com.metadatis.stretch.chainreduce.ChainReduceVertex;
+
+public interface MessageHandler {
 
 	public String getMessageType();
 

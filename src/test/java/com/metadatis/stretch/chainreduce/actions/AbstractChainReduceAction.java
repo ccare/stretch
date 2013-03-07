@@ -1,7 +1,9 @@
-package com.metadatis.stretch.chainreduce;
+package com.metadatis.stretch.chainreduce.actions;
 
 import org.apache.giraph.graph.Edge;
 import org.apache.hadoop.io.Text;
+
+import com.metadatis.stretch.chainreduce.ChainReduceVertex;
 
 public abstract class AbstractChainReduceAction implements VertexAction {
 
