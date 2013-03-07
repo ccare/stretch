@@ -26,20 +26,20 @@ public class SimpleInputFormat extends TextVertexInputFormat<Text, Text, Text, T
 			// TODO Auto-generated method stub
 			String val = getRecordReader()
 	          .getCurrentValue().toString();
-			MyVertex myVertex = null;
+			ChainReduceVertex myVertex = null;
 			String[] edges = val.split(";");
 			for (String edge : edges) {
+				System.out.println(edge);
 				String[] split = edge.trim().split(" ");
 				String nodeLabel = split[0];
 				String edgeValue = split[1];
 				String nextEdge = split[2];
 				if (myVertex == null) {
-					myVertex = new MyVertex();
+					myVertex = new ChainReduceVertex();
 					myVertex.initialize(new Text(nodeLabel), new Text(""));
 				}
 				if (! nextEdge.equals("_")) {
 					myVertex.addEdge(new Text(nextEdge), new Text(edgeValue));
-					myVertex.addEdge(new Text(edgeValue), new Text(nextEdge));
 				}
 			}
 			return myVertex;

@@ -71,9 +71,8 @@ public class MyTest {
 		   *                          F/X > G/X   p4       
 		   *                          
 		   *  A/X <---- C/X <---- E/X <---- G/X   r4  
-		   *  A/X < B/X                           r4
-		   *            C/X < D/X                 r4
-		   *                      E/X < F/X       r4 
+		   *  A/X <---------- D/X                 r4
+		   *            C/X <--------  F/X        r4 
 		   *       
 		   */
 		  
@@ -120,11 +119,10 @@ public class MyTest {
 	    		"F/X p4 G/X",
 	    		// & reverse
 //	    		"G/X r4 E/X", 
-//	    		"F/X r4 E/X", 
+//	    		"F/X r4 C/X", 
 //	    		"E/X r4 C/X", 
-//	    		"D/X r4 C/X", 
-//	    		"C/X r4 A/X", 
-//	    		"B/X r4 A/X" 
+//	    		"D/X r4 A/X", 
+//	    		"C/X r4 A/X" 
 	    		};
 	    
 	    Map<String, String> myParams = Maps.newHashMap();
