@@ -1,5 +1,8 @@
 package com.metadatis.stretch.chainreduce;
 
+import static com.metadatis.stretch.chainreduce.ChainReduceVertex.*;
+
+import java.util.Map;
 
 import org.apache.giraph.graph.Edge;
 import org.apache.hadoop.io.Text;

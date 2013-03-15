@@ -13,20 +13,21 @@ import com.metadatis.stretch.chainreduce.ChainReduceVertex;
 public class DiffSameAction extends AbstractChainReduceAction implements MessageHandler<ChainReduceVertex> {
 	
 	private final CalculateForwardCandidateAction candidateAction;
-	private final Text sameLabel;
-	private final Text diffLabel;
-	private final Text candidateLabel;
+	private final String sameLabelKey;
+	private final String diffLabelKey;
+	private final String candidateLabelKey;
 	
-	public DiffSameAction(Text sameLabel, Text diffLabel, final Text candidateLabel, CalculateForwardCandidateAction candidateAction) {
-		this.sameLabel = sameLabel;
-		this.diffLabel = diffLabel;
-		this.candidateLabel = candidateLabel;
+	public DiffSameAction(String sameLabelKey, String diffLabelKey, final String candidateLabelKey, 
+			final CalculateForwardCandidateAction candidateAction) {
+		this.sameLabelKey = sameLabelKey;
+		this.diffLabelKey = diffLabelKey;
+		this.candidateLabelKey = candidateLabelKey;
 		this.candidateAction = candidateAction;
 	}
 
 	@Override
 	public String getMessageType() {
-		return "DIFF_SAME_" + candidateLabel;
+		return "DIFF_SAME_" + candidateLabelKey;
 	}
 
 	@Override
@@ -38,14 +39,17 @@ public class DiffSameAction extends AbstractChainReduceAction implements Message
 		
 		Text sourceVertexId = new Text(src);
 		if (calculateMyValue.equals(value)) {
+			Text sameLabel = textFromConfig(vertex, sameLabelKey);
 			vertex.addEdgeRequest(sourceVertexId, new Edge<Text, Text>(vertex.getId(), sameLabel));
 		} else {
+			Text diffLabel = textFromConfig(vertex, diffLabelKey);
 			vertex.addEdgeRequest(sourceVertexId, new Edge<Text, Text>(vertex.getId(),  diffLabel));				
 		}			
 	}
 
 	@Override
 	public boolean triggerable(ChainReduceVertex vertex) {
+		Text candidateLabel = textFromConfig(vertex, candidateLabelKey);
 		if (!candidateAction.finished(vertex)) {
 			return false;
 		} else if (null == findEdgeByValue(vertex, candidateLabel)) {
@@ -70,11 +74,14 @@ public class DiffSameAction extends AbstractChainReduceAction implements Message
 
 	@Override
 	public boolean finished(ChainReduceVertex vertex) {
+		Text candidateLabel = textFromConfig(vertex, candidateLabelKey);
 		if (!candidateAction.finished(vertex)) {
 			return false;
 		} else if (null == findEdgeByValue(vertex, candidateLabel)) {
 			return true;
 		} else {
+			Text sameLabel = textFromConfig(vertex, sameLabelKey);
+			Text diffLabel = textFromConfig(vertex, diffLabelKey);
 			Text sameLink = findEdgeByValue(vertex, sameLabel);
 			Text diffLink = findEdgeByValue(vertex, diffLabel);
 			if (null == sameLink && null == diffLink) {
@@ -88,6 +95,7 @@ public class DiffSameAction extends AbstractChainReduceAction implements Message
 	@Override
 	public void trigger(ChainReduceVertex vertex) throws IOException {
 		String vertexId = vertex.getId().toString();
+		Text candidateLabel = textFromConfig(vertex, candidateLabelKey);
 		Text candidate = findEdgeByValue(vertex, candidateLabel);
 		Text msg = new Text(getMessageType() + " " + vertexId + " " + calculateVertexValue(vertex));
 		vertex.sendMessage(candidate, msg);

@@ -9,19 +9,20 @@ import org.apache.hadoop.io.Text;
 
 import com.metadatis.stretch.chainreduce.ChainReduceVertex;
 
-public class ReverseEdgeAction extends GuardedEdgeAction {
+public class ReverseEdgeAction implements VertexAction<ChainReduceVertex> {
 
-	private final Text currentEdgeLabel;
-	private final Text targetEdgeLabel;
+	private final String currentEdgeLabelKey;
+	private final String targetEdgeLabelKey;
 
-	public ReverseEdgeAction(Text currentEdgeLabel, Text targetEdgeLabel) {
-		super(currentEdgeLabel);
-		this.currentEdgeLabel = currentEdgeLabel;
-		this.targetEdgeLabel = targetEdgeLabel;
+	public ReverseEdgeAction(final String currentEdgeLabelKey, final String targetEdgeLabelKey) {
+		this.currentEdgeLabelKey = currentEdgeLabelKey;
+		this.targetEdgeLabelKey = targetEdgeLabelKey;
 	}
 
 	@Override
 	public void trigger(ChainReduceVertex vertex) throws IOException {
+		final Text currentEdgeLabel = textFromConfig(vertex, currentEdgeLabelKey);
+		final Text targetEdgeLabel = textFromConfig(vertex, targetEdgeLabelKey);
 		Text target = findEdgeByValue(vertex, currentEdgeLabel);
 		if (target != null) {
 			vertex.addEdgeRequest(target, new Edge<Text, Text>(vertex.getId(), targetEdgeLabel));
@@ -37,4 +38,16 @@ public class ReverseEdgeAction extends GuardedEdgeAction {
 	public boolean applicable(ChainReduceVertex vertex) {
 		return true;
 	}
+
+	protected Text textFromConfig(ChainReduceVertex vertex, String key) {
+		String val = vertex.getConf().get(key);
+		return new Text(val);
+	}
+
+	@Override
+	public boolean triggerable(ChainReduceVertex vertex) {
+		return true;
+	}
+	
+	
 }

@@ -13,21 +13,22 @@ import com.metadatis.stretch.chainreduce.ChainReduceVertex;
 
 public class CalculateForwardCandidateAction extends AbstractChainReduceAction implements MessageHandler<ChainReduceVertex> {
 		
-		private final Text parentForwardLabel;
-		private final Text parentReverseLabel;
-		private final Text nextCandidateLabel;
-		private final Text prevCandidateLabel;
+		private final String parentForwardLabelKey;
+		private final String parentReverseLabelKey;
+		private final String nextCandidateLabelKey;
+		private final String prevCandidateLabelKey;
 		
-		public CalculateForwardCandidateAction(final Text p1, final Text r1, 
-				final Text next, final Text prev) {
-			this.parentForwardLabel = p1;
-			this.parentReverseLabel = r1;
-			this.nextCandidateLabel = next;
-			this.prevCandidateLabel = prev;
+		public CalculateForwardCandidateAction(final String p1, final String r1, 
+				final String next, final String prev) {
+			this.parentForwardLabelKey = p1;
+			this.parentReverseLabelKey = r1;
+			this.nextCandidateLabelKey = next;
+			this.prevCandidateLabelKey = prev;
 		}
 
 		@Override
 		public boolean triggerable(ChainReduceVertex vertex) {
+			final Text nextCandidateLabel = textFromConfig(vertex, nextCandidateLabelKey);
 			return null == findEdgeByValue(vertex, nextCandidateLabel);
 		}
 
@@ -47,6 +48,10 @@ public class CalculateForwardCandidateAction extends AbstractChainReduceAction i
 
 		@Override
 		public void handle(ChainReduceVertex vertex, String[] params) throws IOException {
+			final Text parentForwardLabel = textFromConfig(vertex, parentForwardLabelKey);
+			final Text parentReverseLabel = textFromConfig(vertex, parentReverseLabelKey);
+			final Text nextCandidateLabel = textFromConfig(vertex, nextCandidateLabelKey);
+			final Text prevCandidateLabel = textFromConfig(vertex, prevCandidateLabelKey);
 			final Text src = new Text(params[1]);
 			Text pTargetId = findEdgeByValue(vertex, parentForwardLabel);
 			if (pTargetId != null) {
@@ -80,6 +85,7 @@ public class CalculateForwardCandidateAction extends AbstractChainReduceAction i
 
 		@Override
 		public boolean finished(ChainReduceVertex vertex) {
+			final Text nextCandidateLabel = textFromConfig(vertex, nextCandidateLabelKey);
 			Text target = findEdgeByValue(vertex, nextCandidateLabel);
 			boolean foundTarget = target != null;
 			boolean noSuchEdge = noEdge(vertex, nextCandidateLabel);
