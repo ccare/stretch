@@ -56,6 +56,7 @@ public class CalculateForwardCandidateAction extends AbstractChainReduceAction i
 			Text pTargetId = findEdgeByValue(vertex, parentForwardLabel);
 			if (pTargetId != null) {
 				Text candidate = deriveEquivalentNode(src, pTargetId);
+			//	Text candidate = methodFromConfig(vertex, "deriveEquivalentVertex", Text.class).calculate(vertex, src, pTargetId.toString());
 				vertex.addEdgeRequest(src, new Edge<Text, Text>(candidate, nextCandidateLabel));
 				vertex.addEdgeRequest(candidate, new Edge<Text, Text>(src, prevCandidateLabel));
 				nudge(vertex, new Text(candidate));
@@ -65,6 +66,7 @@ public class CalculateForwardCandidateAction extends AbstractChainReduceAction i
 			Text rTargetId = findEdgeByValue(vertex, parentReverseLabel);
 			if (rTargetId != null) {
 				Text candidate = deriveEquivalentNode(src, rTargetId);
+			//	Text candidate = methodFromConfig(vertex, "deriveEquivalentVertex", Text.class).calculate(vertex, src, rTargetId.toString());
 				vertex.addEdgeRequest(src, new Edge<Text, Text>(candidate, prevCandidateLabel));
 				vertex.addEdgeRequest(candidate, new Edge<Text, Text>(src, nextCandidateLabel));
 				nudge(vertex, new Text(candidate));

@@ -383,6 +383,7 @@ public class ChainReduceTest {
 		config.put(BACKWARD_DIFFERENT_LABEL_KEY, "bDiff");
 		config.put(APPLICABLE_CLASS, "com.metadatis.stretch.chainreduce.methods.IsApplicable");
 		config.put("find-parent", "com.metadatis.stretch.chainreduce.methods.DeriveParent");
+		config.put("deriveEquivalentVertex", "com.metadatis.stretch.chainreduce.methods.DeriveEquivalent");
 	}
 	  
 
