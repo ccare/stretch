@@ -2,16 +2,7 @@ package com.metadatis.stretch.chainreduce;
 
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertThat;
-import static com.metadatis.stretch.chainreduce.ChainReduceVertex.BACKWARD_DIFFERENT_LABEL_KEY;
-import static com.metadatis.stretch.chainreduce.ChainReduceVertex.BACKWARD_SAME_LABEL_KEY;
-import static com.metadatis.stretch.chainreduce.ChainReduceVertex.CANDIDATE_NEXT_KEY;
-import static com.metadatis.stretch.chainreduce.ChainReduceVertex.CANDIDATE_PREV_KEY;
-import static com.metadatis.stretch.chainreduce.ChainReduceVertex.FORWARD_DIFFERENT_LABEL_KEY;
-import static com.metadatis.stretch.chainreduce.ChainReduceVertex.FORWARD_SAME_LABEL_KEY;
-import static com.metadatis.stretch.chainreduce.ChainReduceVertex.P1_KEY;
-import static com.metadatis.stretch.chainreduce.ChainReduceVertex.P2_KEY;
-import static com.metadatis.stretch.chainreduce.ChainReduceVertex.R1_KEY;
-import static com.metadatis.stretch.chainreduce.ChainReduceVertex.R2_KEY;
+import static com.metadatis.stretch.chainreduce.ChainReduceVertex.*;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -390,6 +381,8 @@ public class ChainReduceTest {
 		config.put(FORWARD_DIFFERENT_LABEL_KEY, "fDiff");
 		config.put(BACKWARD_SAME_LABEL_KEY, "bSame");
 		config.put(BACKWARD_DIFFERENT_LABEL_KEY, "bDiff");
+		config.put(APPLICABLE_CLASS, "com.metadatis.stretch.chainreduce.methods.IsApplicable");
+		config.put("find-parent", "com.metadatis.stretch.chainreduce.methods.DeriveParent");
 	}
 	  
 

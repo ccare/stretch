@@ -10,6 +10,7 @@ import org.apache.giraph.graph.Edge;
 import org.apache.hadoop.io.Text;
 
 import com.metadatis.stretch.chainreduce.ChainReduceVertex;
+import com.metadatis.stretch.chainreduce.methods.VertexMethod;
 
 public class CalculateForwardCandidateAction extends AbstractChainReduceAction implements MessageHandler<ChainReduceVertex> {
 		
@@ -34,10 +35,9 @@ public class CalculateForwardCandidateAction extends AbstractChainReduceAction i
 
 		@Override
 		public void trigger(ChainReduceVertex vertex) throws IOException {
-			String vertexId = vertex.getId().toString();
-			String[] split = vertexId.split("/");
-			String derivedParent = split[0];
-			Text msg = new Text("FIND_NEXT " + vertexId);
+			VertexMethod<String> m = methodFromConfig(vertex, "find-parent", String.class);
+			String derivedParent = m.calculate(vertex);
+			Text msg = new Text("FIND_NEXT " + vertex.getId().toString());
 			vertex.sendMessage(new Text(derivedParent), msg);
 		}
 
