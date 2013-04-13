@@ -8,8 +8,10 @@ import java.io.IOException;
 
 import org.apache.giraph.graph.Edge;
 import org.apache.hadoop.io.Text;
+import org.apache.log4j.varia.DenyAllFilter;
 
 import com.metadatis.stretch.chainreduce.ChainReduceVertex;
+import com.metadatis.stretch.chainreduce.methods.DeriveEquivalent;
 import com.metadatis.stretch.chainreduce.methods.VertexMethod;
 
 public class CalculateForwardCandidateAction extends AbstractChainReduceAction implements MessageHandler<ChainReduceVertex> {
@@ -18,13 +20,19 @@ public class CalculateForwardCandidateAction extends AbstractChainReduceAction i
 		private final String parentReverseLabelKey;
 		private final String nextCandidateLabelKey;
 		private final String prevCandidateLabelKey;
+		private final String findParentMethodKey;
+		private final String deriveEquivalentVertexKey;
 		
 		public CalculateForwardCandidateAction(final String p1, final String r1, 
-				final String next, final String prev) {
+				final String next, final String prev,
+				final String findParentMethodKey,
+				final String deriveEquivalentVertexKey) {
 			this.parentForwardLabelKey = p1;
 			this.parentReverseLabelKey = r1;
 			this.nextCandidateLabelKey = next;
 			this.prevCandidateLabelKey = prev;
+			this.findParentMethodKey = findParentMethodKey;
+			this.deriveEquivalentVertexKey = deriveEquivalentVertexKey;
 		}
 
 		@Override
@@ -35,7 +43,7 @@ public class CalculateForwardCandidateAction extends AbstractChainReduceAction i
 
 		@Override
 		public void trigger(ChainReduceVertex vertex) throws IOException {
-			VertexMethod<String> m = methodFromConfig(vertex, "find-parent", String.class);
+			VertexMethod<String> m = methodFromConfig(vertex, findParentMethodKey, String.class);
 			String derivedParent = m.calculate(vertex);
 			Text msg = new Text("FIND_NEXT " + vertex.getId().toString());
 			vertex.sendMessage(new Text(derivedParent), msg);
@@ -55,8 +63,7 @@ public class CalculateForwardCandidateAction extends AbstractChainReduceAction i
 			final Text src = new Text(params[1]);
 			Text pTargetId = findEdgeByValue(vertex, parentForwardLabel);
 			if (pTargetId != null) {
-				Text candidate = deriveEquivalentNode(src, pTargetId);
-			//	Text candidate = methodFromConfig(vertex, "deriveEquivalentVertex", Text.class).calculate(vertex, src, pTargetId.toString());
+				Text candidate = methodFromConfig(vertex, deriveEquivalentVertexKey, Text.class).calculate(vertex, src, pTargetId);
 				vertex.addEdgeRequest(src, new Edge<Text, Text>(candidate, nextCandidateLabel));
 				vertex.addEdgeRequest(candidate, new Edge<Text, Text>(src, prevCandidateLabel));
 				nudge(vertex, new Text(candidate));
@@ -65,8 +72,7 @@ public class CalculateForwardCandidateAction extends AbstractChainReduceAction i
 			}
 			Text rTargetId = findEdgeByValue(vertex, parentReverseLabel);
 			if (rTargetId != null) {
-				Text candidate = deriveEquivalentNode(src, rTargetId);
-			//	Text candidate = methodFromConfig(vertex, "deriveEquivalentVertex", Text.class).calculate(vertex, src, rTargetId.toString());
+				Text candidate = methodFromConfig(vertex, deriveEquivalentVertexKey, Text.class).calculate(vertex, src, rTargetId);
 				vertex.addEdgeRequest(src, new Edge<Text, Text>(candidate, prevCandidateLabel));
 				vertex.addEdgeRequest(candidate, new Edge<Text, Text>(src, nextCandidateLabel));
 				nudge(vertex, new Text(candidate));
@@ -74,15 +80,6 @@ public class CalculateForwardCandidateAction extends AbstractChainReduceAction i
 				vertex.addEdgeRequest(src, new Edge<Text, Text>(DUMMY_VERTEX, prevCandidateLabel));				
 			}
 			nudge(vertex, new Text(src));
-		}
-
-
-		private Text deriveEquivalentNode(Text vertexId, Text result) {
-			String[] idSplit = vertexId.toString().split("/");
-			String identifierFragment = idSplit[1];
-			String candidate = String.format("%s/%s", result.toString(),
-					identifierFragment);
-			return new Text(candidate);
 		}
 
 		@Override

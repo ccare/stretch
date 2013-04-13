@@ -10,12 +10,12 @@ public class DeriveEquivalent implements VertexMethod<Text> {
 	public Text calculate(
 			ChainReduceVertex vertex, Object... args) {
 		Text srcVertexId = (Text) args[0];
-		String result = (String) args[0];
-		return deriveEquivalentNode(srcVertexId, result);
+		Text result = (Text) args[1];
+		return deriveEquivalentNode(srcVertexId, result.toString());
 	}
 
 
-	private Text deriveEquivalentNode(Text vertexId, String result) {
+	public Text deriveEquivalentNode(Text vertexId, String result) {
 		String[] idSplit = vertexId.toString().split("/");
 		String identifierFragment = idSplit[1];
 		String candidate = String.format("%s/%s", result,
