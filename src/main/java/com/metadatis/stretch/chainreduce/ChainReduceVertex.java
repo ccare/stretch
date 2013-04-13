@@ -27,8 +27,8 @@ public class ChainReduceVertex extends AbstractActionBasedComputationVertex {
 	public static final String BACKWARD_SAME_LABEL_KEY = "bSame";
 	public static final String BACKWARD_DIFFERENT_LABEL_KEY = "bDiff";
 	public static final String APPLICABLE_CLASS = "applicable-class";
-	public static final String FIND_PARENT_METHOD_KEY = "find-parent";
-	public static final String DERIVE_EQUIVALENT_VERTEX_METHOD_KEY = "deriveEquivalentVertex";
+	public static final String FIND_PARENT_METHOD_CLASS = "find-parent";
+	public static final String DERIVE_EQUIVALENT_VERTEX_METHOD_CLASS = "deriveEquivalentVertex";
 	
 	private static final LoadingCache<String, VertexMethod> methods;
 	
@@ -55,8 +55,8 @@ public class ChainReduceVertex extends AbstractActionBasedComputationVertex {
 	static {		
 		CalculateForwardCandidateAction createCandidateAction = new CalculateForwardCandidateAction(P1_KEY, 
 				R1_KEY, CANDIDATE_NEXT_KEY, CANDIDATE_PREV_KEY, 
-				FIND_PARENT_METHOD_KEY, 
-				DERIVE_EQUIVALENT_VERTEX_METHOD_KEY);
+				FIND_PARENT_METHOD_CLASS, 
+				DERIVE_EQUIVALENT_VERTEX_METHOD_CLASS);
 		
 		registry.register(new ReverseEdgeAction(P1_KEY, R1_KEY));
 		registry.register(new ReverseEdgeAction(P2_KEY, R2_KEY));

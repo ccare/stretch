@@ -382,8 +382,8 @@ public class ChainReduceTest {
 		config.put(BACKWARD_SAME_LABEL_KEY, "bSame");
 		config.put(BACKWARD_DIFFERENT_LABEL_KEY, "bDiff");
 		config.put(APPLICABLE_CLASS, "com.metadatis.stretch.chainreduce.methods.IsApplicable");
-		config.put(FIND_PARENT_METHOD_KEY, "com.metadatis.stretch.chainreduce.methods.DeriveParent");
-		config.put(DERIVE_EQUIVALENT_VERTEX_METHOD_KEY, "com.metadatis.stretch.chainreduce.methods.DeriveEquivalent");
+		config.put(FIND_PARENT_METHOD_CLASS, "com.metadatis.stretch.chainreduce.methods.DeriveParent");
+		config.put(DERIVE_EQUIVALENT_VERTEX_METHOD_CLASS, "com.metadatis.stretch.chainreduce.methods.DeriveEquivalent");
 	}
 	  
 
